@@ -98,16 +98,39 @@ CREATE TABLE IF NOT EXISTS orders (
   CONSTRAINT fk_o_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS vendors (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(20) NOT NULL UNIQUE,
+  name VARCHAR(150) NOT NULL,
+  type VARCHAR(40) NOT NULL,
+  contact_person VARCHAR(120) NULL,
+  phone VARCHAR(40) NULL,
+  email VARCHAR(120) NULL,
+  address VARCHAR(255) NULL,
+  npwp VARCHAR(40) NULL,
+  bank_name VARCHAR(60) NULL,
+  bank_account VARCHAR(40) NULL,
+  bank_holder VARCHAR(120) NULL,
+  payment_terms_days SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  notes VARCHAR(255) NULL,
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_vendor_type (type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS order_costs (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   order_id INT UNSIGNED NOT NULL,
   category ENUM('bbm','tol','uang_jalan','lain') NOT NULL,
+  vendor_id INT UNSIGNED NULL,
   amount DECIMAL(14,2) NOT NULL,
   note VARCHAR(200) NULL,
   created_by INT UNSIGNED NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY idx_cost_order (order_id),
-  CONSTRAINT fk_cost_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+  KEY idx_cost_vendor (vendor_id),
+  CONSTRAINT fk_cost_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  CONSTRAINT fk_cost_vendor FOREIGN KEY (vendor_id) REFERENCES vendors(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS pod_files (

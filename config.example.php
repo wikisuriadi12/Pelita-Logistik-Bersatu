@@ -18,6 +18,11 @@ return [
     'company_address' => '',
     'company_phone'   => '',
     'bank_info'       => '',   // contoh: Bank BCA 000-000-0000 a.n. Pelita Logistik Bersatu
+    'company_npwp'    => '',
+
+    // Penandatangan di invoice cetak
+    'invoice_signer'       => '',   // contoh: Hendra Gunawan
+    'invoice_signer_title' => '',   // contoh: Direktur
 
     // PPN atau pajak lain dalam persen. Isi 0 bila tidak dipungut.
     'default_tax_rate' => 0,

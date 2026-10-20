@@ -12,6 +12,8 @@ Aplikasi web PHP + MySQL tanpa framework, ringan, dan bisa dipasang di hosting c
 - **Biaya perjalanan**: BBM, tol, uang jalan, lain-lain per order. Margin dihitung otomatis.
 - **Bukti pengiriman (POD)**: unggah foto JPG/PNG atau PDF. Order tidak bisa ditandai terkirim tanpa bukti dan nama penerima.
 - **Invoice dan penagihan**: invoice dari order yang sudah terkirim, pajak opsional, pembayaran bertahap, status lunas otomatis, cetak atau simpan PDF dari browser.
+- **Cetak invoice**: halaman A4 dengan kop perusahaan, rincian order, terbilang, rekening pembayaran, kolom tanda tangan, dan cap LUNAS atau BATAL. Dari detail invoice klik **Cetak invoice**, lalu simpan sebagai PDF bila perlu.
+- **Master vendor**: subkontraktor, bengkel, SPBU, tol, asuransi, dan lainnya, lengkap dengan kontak, NPWP, rekening bank, dan tempo pembayaran. Vendor bisa dipilih saat mencatat biaya order, dan laporan menampilkan biaya per vendor.
 - **Laporan**: ringkasan bulanan, per pelanggan, per armada, biaya per kategori, umur piutang. Ekspor ke Excel (CSV) dan cetak PDF.
 - **Login dan peran**: Admin, Dispatcher, Keuangan, Manajemen, Driver.
 - **Peringatan di ringkasan**: order terlambat, KIR dan SIM hampir habis, order belum ditagihkan, invoice jatuh tempo.
@@ -21,9 +23,9 @@ Aplikasi web PHP + MySQL tanpa framework, ringan, dan bisa dipasang di hosting c
 | Peran | Akses |
 |---|---|
 | Admin | Semua, termasuk kelola pengguna |
-| Dispatcher | Order, pelanggan, armada, driver, jadwal, bukti pengiriman |
-| Keuangan | Pelanggan, invoice, pembayaran, biaya, laporan |
-| Manajemen | Lihat ringkasan, order, armada, driver, invoice, laporan |
+| Dispatcher | Order, pelanggan, vendor, armada, driver, jadwal, bukti pengiriman |
+| Keuangan | Pelanggan, vendor, invoice, pembayaran, biaya, laporan |
+| Manajemen | Lihat ringkasan, order, vendor, armada, driver, invoice, laporan |
 | Driver | Hanya order miliknya: berangkat, biaya, unggah bukti, selesai |
 
 Akun Driver dihubungkan ke data driver di menu **Pengguna**.
@@ -41,6 +43,12 @@ Akun Driver dihubungkan ke data driver di menu **Pengguna**.
 4. Buka `https://domain-anda/install.php`, buat akun admin pertama. Tabel dibuat otomatis.
 5. **Hapus `install.php`** dari server.
 6. Pastikan folder `storage/pod` bisa ditulis oleh PHP (izin 750 atau 755).
+
+### Memperbarui sistem yang sudah terpasang
+
+Setelah menarik versi terbaru, jalankan file di `database/migrations/` yang belum pernah Anda jalankan, satu kali, lewat phpMyAdmin. Fitur vendor memakai `002_vendors.sql`. Pemasangan baru tidak perlu migrasi.
+
+Untuk invoice cetak, isi `company_npwp`, `invoice_signer`, dan `invoice_signer_title` di `config.php`.
 
 ## Pemasangan di server lokal (XAMPP, Laragon, atau PHP bawaan)
 
@@ -65,7 +73,9 @@ customers.php        Pelanggan
 vehicles.php         Armada
 drivers.php          Driver
 invoices.php         Daftar dan pembuatan invoice
-invoice_view.php     Detail, pembayaran, cetak
+invoice_view.php     Detail dan pembayaran
+invoice_print.php    Cetak invoice A4
+vendors.php          Master vendor
 reports.php          Laporan dan ekspor
 users.php            Pengguna dan peran (admin)
 login.php, logout.php, install.php

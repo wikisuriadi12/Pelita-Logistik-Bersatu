@@ -111,8 +111,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $cat = post('category');
                 $amount = post_num('amount');
                 if (!isset(cost_category_map()[$cat]) || $amount <= 0) { flash('Pilih kategori dan isi jumlah biaya.', 'bad'); break; }
-                q('INSERT INTO order_costs (order_id, category, amount, note, created_by) VALUES (?,?,?,?,?)',
-                    [$id, $cat, $amount, mb_substr(post('note'), 0, 200), $u['id']]);
+                $vendorId = null;
+                if (has_role('dispatcher', 'finance') && (int)post('vendor_id') > 0) {
+                    $vendorId = q_val('SELECT id FROM vendors WHERE id = ? AND active = 1', [(int)post('vendor_id')]);
+                    if ($vendorId === null) { flash('Vendor tidak ditemukan atau sudah nonaktif.', 'bad'); break; }
+                    $vendorId = (int)$vendorId;
+                }
+                q('INSERT INTO order_costs (order_id, category, vendor_id, amount, note, created_by) VALUES (?,?,?,?,?,?)',
+                    [$id, $cat, $vendorId, $amount, mb_substr(post('note'), 0, 200), $u['id']]);
                 audit('cost', 'order', $id, $cat . ' ' . $amount);
                 flash('Biaya dicatat.');
                 break;
@@ -151,7 +157,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('order_view.php?id=' . $id);
 }
 
-$costs = q_all('SELECT * FROM order_costs WHERE order_id = ? ORDER BY id', [$id]);
+$costs = q_all('SELECT x.*, v.name AS vendor FROM order_costs x LEFT JOIN vendors v ON v.id = x.vendor_id WHERE x.order_id = ? ORDER BY x.id', [$id]);
+$vendorOpts = has_role('dispatcher', 'finance') ? q_all('SELECT id, name, type FROM vendors WHERE active = 1 ORDER BY name') : [];
 $costTotal = array_sum(array_column($costs, 'amount'));
 $pods = q_all('SELECT * FROM pod_files WHERE order_id = ? ORDER BY id', [$id]);
 $trail = q_all('SELECT a.*, u.name AS who FROM audit_log a LEFT JOIN users u ON u.id = a.user_id WHERE a.entity = ? AND a.entity_id = ? ORDER BY a.id DESC LIMIT 15', ['order', $id]);
@@ -258,7 +265,7 @@ $st = $order['status'];
       <?php foreach ($costs as $c): ?>
         <tr>
           <td><?= e(cost_category_map()[$c['category']] ?? $c['category']) ?></td>
-          <td><?= e($c['note']) ?></td>
+          <td><?= e($c['note']) ?><?= $c['vendor'] ? '<br><span class="muted">Vendor: ' . e($c['vendor']) . '</span>' : '' ?></td>
           <td class="r num"><?= e(rp($c['amount'])) ?></td>
           <td class="r"><?php if ($canCost): ?>
             <form method="post" data-confirm="Hapus biaya ini?"><?= csrf_field() ?><input type="hidden" name="do" value="del_cost"><input type="hidden" name="cost_id" value="<?= (int)$c['id'] ?>"><button class="btn sm danger">Hapus</button></form>
@@ -279,6 +286,13 @@ $st = $order['status'];
         <select name="category"><?php foreach (cost_category_map() as $k => $l): ?><option value="<?= e($k) ?>"><?= e($l) ?></option><?php endforeach; ?></select>
       </label>
       <label>Jumlah (Rp) <input type="number" name="amount" min="1" step="1" required></label>
+      <?php if ($vendorOpts): ?>
+      <label>Vendor (opsional)
+        <select name="vendor_id"><option value="">Tanpa vendor</option>
+          <?php foreach ($vendorOpts as $vo): ?><option value="<?= (int)$vo['id'] ?>"><?= e($vo['name'] . ' · ' . $vo['type']) ?></option><?php endforeach; ?>
+        </select>
+      </label>
+      <?php endif; ?>
       <label>Catatan <input name="note" maxlength="200"></label>
       <div class="actions" style="align-self:end"><button class="btn">Tambah biaya</button></div>
     </form>

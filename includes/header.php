@@ -13,6 +13,9 @@ if ($u) {
     if (has_role('dispatcher', 'finance')) {
         $nav[] = ['customers.php', 'Pelanggan', 'customers'];
     }
+    if (has_role('dispatcher', 'finance', 'manajemen')) {
+        $nav[] = ['vendors.php', 'Vendor', 'vendors'];
+    }
     if (has_role('dispatcher', 'manajemen')) {
         $nav[] = ['vehicles.php', 'Armada', 'vehicles'];
         $nav[] = ['drivers.php', 'Driver', 'drivers'];

@@ -78,7 +78,7 @@ require __DIR__ . '/includes/header.php';
 ?>
 <div class="bar no-print">
   <a class="btn sm" href="invoices.php">Kembali</a>
-  <div class="row"><button class="btn" onclick="window.print()">Cetak / simpan PDF</button></div>
+  <div class="row"><a class="btn primary" href="invoice_print.php?id=<?= (int)$id ?>&amp;print=1" target="_blank" rel="noopener">Cetak invoice</a></div>
 </div>
 
 <section class="card">

@@ -68,6 +68,11 @@ uasort($byVehicle, function ($a, $b) { return $b['rev'] <=> $a['rev']; });
 $byCat = q_all("SELECT x.category, SUM(x.amount) AS total FROM order_costs x JOIN orders o ON o.id = x.order_id
   WHERE o.status = 'terkirim' AND o.delivered_date >= ? AND o.delivered_date < ? GROUP BY x.category ORDER BY total DESC", $range);
 
+$byVendor = q_all("SELECT COALESCE(v.name, 'Tanpa vendor') AS vendor, COUNT(*) AS n, SUM(x.amount) AS total
+  FROM order_costs x JOIN orders o ON o.id = x.order_id LEFT JOIN vendors v ON v.id = x.vendor_id
+  WHERE o.status = 'terkirim' AND o.delivered_date >= ? AND o.delivered_date < ?
+  GROUP BY x.vendor_id, v.name ORDER BY total DESC", $range);
+
 $aging = ['Belum jatuh tempo' => 0, '1-30 hari' => 0, '31-60 hari' => 0, 'Lebih dari 60 hari' => 0];
 $recvTotal = 0;
 foreach ($recv as $r) {
@@ -118,6 +123,13 @@ require __DIR__ . '/includes/header.php';
   <?php if (!$byCat): ?><p class="muted">Belum ada biaya tercatat untuk order bulan ini.</p><?php else: ?>
   <div class="tw"><table style="min-width:0"><thead><tr><th>Kategori</th><th class="r">Jumlah</th><th class="r">Porsi</th></tr></thead><tbody>
   <?php foreach ($byCat as $c): ?><tr><td><?= e(cost_category_map()[$c['category']] ?? $c['category']) ?></td><td class="r num"><?= e(rp($c['total'])) ?></td><td class="r num"><?= $cost > 0 ? round(100 * $c['total'] / $cost) : 0 ?>%</td></tr><?php endforeach; ?>
+  </tbody></table></div><?php endif; ?>
+</section>
+
+<section class="card"><h3>Biaya per vendor</h3>
+  <?php if (!$byVendor): ?><p class="muted">Belum ada biaya tercatat untuk order bulan ini.</p><?php else: ?>
+  <div class="tw"><table style="min-width:0"><thead><tr><th>Vendor</th><th class="r">Catatan</th><th class="r">Jumlah</th></tr></thead><tbody>
+  <?php foreach ($byVendor as $bv): ?><tr><td><?= e($bv['vendor']) ?></td><td class="r num"><?= (int)$bv['n'] ?></td><td class="r num"><?= e(rp($bv['total'])) ?></td></tr><?php endforeach; ?>
   </tbody></table></div><?php endif; ?>
 </section>
 
